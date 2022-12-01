@@ -6,6 +6,8 @@ from scipy import signal
 from scipy.signal import get_window
 from scipy.io import wavfile
 from scipy.fft import fft, fftfreq
+from FE_funcs.feat_extract import FE
+import os
 
 __all__ = ["frequencyPlot", "spectogram", "MFCC"]
 
@@ -43,11 +45,55 @@ def spectogram(filename, filepath=""):
         plt.show()
 
 
-def MFCC(filename, filepath="", librosa=True, fft_size=2048, hop_size=15, window_shape="hann"):
-    if librosa:
+def MFCC(filename, filepath="", mode="feat_extract", fft_size=2048, hop_size=15, window_shape="hann", saveLogMel=False,
+         saveMFCC=False):
+    if mode == "librosa":
         MFCCLibrosa(filename, filepath=filepath)
-        return
-    MFCCScipy(filename, filepath=filepath, fft_size=fft_size, hop_size=hop_size, window_shape=window_shape)
+    elif mode == "scipy":
+        MFCCScipy(filename, filepath=filepath, fft_size=fft_size, hop_size=hop_size, window_shape=window_shape)
+    elif mode == "feat_extract":
+        return MFCCFeatExtract(filename, filepath=filepath, saveLogMel=saveLogMel, saveMFCC=saveMFCC)
+
+
+def MFCCFeatExtract(filename, filepath="", saveLogMel=False, saveMFCC=False):
+    # Load in the WAV file
+    samplerate, data = wavfile.read(filepath + "/" + filename)
+
+    # Define feature extraction parameters
+    featconf = {}
+    featconf['dcRemoval'] = 'hpf'
+    featconf['samFreq'] = samplerate
+    featconf['lowFreq'] = 0
+    featconf['highFreq'] = featconf['samFreq'] / 2
+    featconf['stepSize_ms'] = 10
+    featconf['frameSize_ms'] = 32
+    featconf['melSize'] = 64
+
+    featextract = FE(featconf)
+
+    # A numpy array for the logmel features and mfccs from all channels
+    logmelAllChannels = np.empty(
+        shape=(data.shape[1],
+               int(np.floor(((np.shape(data)[0] - (featconf['frameSize'] - 1) - 1) / featconf['stepSize']) + 1)),
+               featconf["melSize"]))
+    mfccAllChannels = np.empty(shape=(data.shape[1], 20, featconf["melSize"]))
+
+    for i in range(0, data.shape[1]):
+        logmelframes = featextract.fe_transform(data[:, i])
+        logmelAllChannels[i] = logmelframes
+
+        mfcc = librosa.feature.mfcc(S=logmelframes, sr=samplerate, n_mfcc=20, hop_length=1024,
+                                    htk=True)
+        mfccAllChannels[i] = mfcc
+
+    if saveLogMel:
+        os.makedirs(filepath + "/logmel/", exist_ok=True)
+        np.save(filepath + "/logmel/" + filename.replace(".wav", ".npy"), logmelAllChannels)
+    if saveMFCC:
+        os.makedirs(filepath + "/mfcc/", exist_ok=True)
+        np.save(filepath + "/mfcc/" + filename.replace(".wav", ".npy"), mfccAllChannels)
+
+    return mfccAllChannels
 
 
 def MFCCScipy(filename, filepath="", fft_size=2048, hop_size=15, window_shape="hann"):

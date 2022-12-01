@@ -1,0 +1,4 @@
+*.wav
+/venv/
+/.idea/
+/dataset/
