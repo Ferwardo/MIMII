@@ -82,8 +82,10 @@ def MFCCFeatExtract(filename, filepath="", saveLogMel=False, saveMFCC=False):
         logmelframes = featextract.fe_transform(data[:, i])
         logmelAllChannels[i] = logmelframes
 
-        mfcc = librosa.feature.mfcc(S=logmelframes, sr=samplerate, n_mfcc=20, hop_length=1024,
-                                    htk=True)
+        dct_filters = dct(20, int(np.floor(
+            ((np.shape(data)[0] - (featconf['frameSize'] - 1) - 1) / featconf['stepSize']) + 1)))
+
+        mfcc = np.dot(dct_filters, logmelframes)
         mfccAllChannels[i] = mfcc
 
     if saveLogMel:
