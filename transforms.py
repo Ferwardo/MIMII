@@ -76,16 +76,18 @@ def MFCCFeatExtract(filename, filepath="", saveLogMel=False, saveMFCC=False):
         shape=(data.shape[1],
                int(np.floor(((np.shape(data)[0] - (featconf['frameSize'] - 1) - 1) / featconf['stepSize']) + 1)),
                featconf["melSize"]))
-    mfccAllChannels = np.empty(shape=(data.shape[1], 20, featconf["melSize"]))
+    mfccAllChannels = np.empty(shape=(data.shape[1], 997, featconf["melSize"]))
 
     for i in range(0, data.shape[1]):
         logmelframes = featextract.fe_transform(data[:, i])
         logmelAllChannels[i] = logmelframes
 
-        dct_filters = dct(20, int(np.floor(
-            ((np.shape(data)[0] - (featconf['frameSize'] - 1) - 1) / featconf['stepSize']) + 1)))
+        # dct_filters = dct(20, int(np.floor(
+        #     ((np.shape(data)[0] - (featconf['frameSize'] - 1) - 1) / featconf['stepSize']) + 1)))
+        dct_filters = dct(featconf["melSize"], featconf["melSize"])
 
-        mfcc = np.dot(dct_filters, logmelframes)
+        # mfcc = np.dot(dct_filters, logmelframes)
+        mfcc = np.dot(logmelframes, dct_filters)
         mfccAllChannels[i] = mfcc
 
     if saveLogMel:
