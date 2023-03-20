@@ -470,9 +470,6 @@ if __name__ == '__main__':
                     if file == "mfcc" or file == "logmel" or file.endswith(".wav"):
                         continue
                     # Save the mean and std of each mfcc to disk
-                    np_file = np.load(f"./dataset/{device_type}/{id}/{data_class}/{file}", allow_pickle=True).astype(
-                        "float32")
-
                     all_mfccs.append(np.concatenate(
                         np.load(f"./dataset/{device_type}/{id}/{data_class}/{file}", allow_pickle=True).astype(
                             "float32")))
@@ -507,5 +504,5 @@ if __name__ == '__main__':
                             stds.append(np_file[channel, filter].std())
                         means_stds.append(means + stds)
 
-                    os.makedirs(f"./dataset_means_std/{device_type}/{id}/{data_class}/", exist_ok=True)
-                    np.save(f"./dataset_means_std/{device_type}/{id}/{data_class}/{file}", np.asarray(means_stds))
+                    os.makedirs(f"./dataset_mean_std/{device_type}/{id}/{data_class}/", exist_ok=True)
+                    np.save(f"./dataset_mean_std/{device_type}/{id}/{data_class}/{file}", np.asarray(means_stds))
