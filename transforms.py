@@ -91,8 +91,8 @@ def MFCCFeatExtract(filename, filepath="", saveLogMel=False, saveMFCC=False):
         os.makedirs(filepath + "/logmel/", exist_ok=True)
         np.save(filepath + "/logmel/" + filename.replace(".wav", ".npy"), logmelAllChannels)
     if saveMFCC:
-        os.makedirs(filepath + "/mfcc/", exist_ok=True)
-        np.save(filepath + "/mfcc/" + filename.replace(".wav", ".npy"), mfccAllChannels)
+        os.makedirs(filepath + "/", exist_ok=True)
+        np.save(filepath + "/" + filename.replace(".wav", ".npy"), mfccAllChannels)
 
     return mfccAllChannels
 
